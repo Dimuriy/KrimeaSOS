@@ -1,0 +1,200 @@
+package com.crimeasos.java.course.Automat;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+
+//Created by Dima on 06.02.2016.
+
+public class CoffeeAutomat {
+    //    мап для хранения текущего количества ингридиентов
+    static HashMap<String,Integer> ingridientsQuantity = new HashMap<String, Integer>();
+    // переменная для хранения количества денег
+    static Integer bankOfMoney;
+
+    //метод в котором считается, хватает ли нам ингридиентов для приготовления кофе, если хватает,
+    //то кофе готовится, если нет, то пишет каких конкретно ингридиентов не хватает
+    public static void makeCoffee(Recipe recipe) throws IOException{
+        Integer sugarQuantity;
+        Integer coffeeBeansQuantity;
+        Integer milkQuantity;
+        Integer waterQuantity;
+        boolean isEnoughComponents = true;
+        sugarQuantity =  CoffeeAutomat.ingridientsQuantity.get("Sugar") -  recipe.getIngridients().get("Sugar");
+        if (sugarQuantity<0){
+            System.out.println("Sorry, not enough sugar");
+            isEnoughComponents = false;
+        }
+        coffeeBeansQuantity =  CoffeeAutomat.ingridientsQuantity.get("CoffeeBeans") -  recipe.getIngridients().get("CoffeeBeans");
+        if (coffeeBeansQuantity<0) {
+            System.out.println("Sorry, not enough coffee beans");
+            isEnoughComponents = false;
+        }
+        milkQuantity =  CoffeeAutomat.ingridientsQuantity.get("Milk") -  recipe.getIngridients().get("Milk");
+        if (milkQuantity<0) {
+            System.out.println("Sorry, not enough Milk");
+            isEnoughComponents = false;
+        }
+        waterQuantity =  CoffeeAutomat.ingridientsQuantity.get("Water") -  recipe.getIngridients().get("Water");
+        if (waterQuantity<0) {
+            System.out.println("Sorry, not enough water");
+            isEnoughComponents = false;
+        }
+
+        if (isEnoughComponents) { //если компонентов хватает, то можно брать деньги
+            if (CoffeeAutomat.getMoney(recipe)){ //если деньги взяли, то готовим кофе и сохраняем а мап уменьшенное кол-во  ингридиентов
+                ingridientsQuantity.put("Sugar", sugarQuantity);
+                ingridientsQuantity.put("CoffeeBeans", coffeeBeansQuantity);
+                ingridientsQuantity.put("Milk", milkQuantity);
+                ingridientsQuantity.put("Water", waterQuantity);
+                System.out.println();
+                System.out.println("Vzzzz-Vzzzzz-Vzzzzzzzzzzzzzzzzzzzzzzzzzz!");
+                System.out.print("Take you cup of ");
+                System.out.print(recipe);
+                System.out.println(" :)");
+            }
+        }
+    }
+    //метод в котором реализована работа с деньгами в обычном режиме (не админ)
+    //если оплата прошла успешно, то метод возвращает true, иначе false
+    public static boolean getMoney(Recipe recipe)throws IOException {
+        System.out.println("Please  put " + recipe.getCoffeeCost() + " Hrn in money receiver, only banknotes denominations of 1, 2, 5, 10 UAH or press 0 to cancel and get money back");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        int moneyQuantity;
+        int temp;
+        boolean isAllOK = false;
+        moneyQuantity = Integer.parseInt(reader.readLine());
+        if (moneyQuantity > 0) {
+            while (moneyQuantity < recipe.getCoffeeCost()) { //пока не хватит денег на кофе, будет требовать еще денег
+                System.out.println("You put " + moneyQuantity + " Hrn, put another " + (recipe.getCoffeeCost() - moneyQuantity) + " Hrn");
+                temp = Integer.parseInt(reader.readLine());
+                // если нажать 0, то это все отменяет и возвращает деньги за кофе
+                if (temp ==0){
+                    System.out.println("You cancel current operations, take you money back" + moneyQuantity + " Hrn");
+                    isAllOK=false;
+                    moneyQuantity=0;
+                    break;
+                }
+                moneyQuantity +=temp;
+                isAllOK=true;
+            }
+            //если дали больше денег, чем стоит кофе, то нужно дать сдачу, если есть с чего давать
+
+            if(moneyQuantity>recipe.getCoffeeCost()){
+                if(bankOfMoney-(moneyQuantity-recipe.getCoffeeCost())<0){ //проверяем есть ли сдача в автомате, если нет возвращаем деньги
+                    System.out.println("Sorry, CoffeeAutomat has no odd money, take you money back - " + moneyQuantity + " Hrn");
+                    isAllOK=false;
+                }
+                else {
+                    System.out.println("Take you odd money " + (moneyQuantity-recipe.getCoffeeCost()) + " Hrn");
+                    moneyQuantity-=(moneyQuantity-recipe.getCoffeeCost());
+                    isAllOK=true;
+                }
+            }
+            bankOfMoney+=moneyQuantity;
+            return isAllOK;
+        }
+        else return false;
+    }
+    // метод извлекает деньги з автомата (режим админа)
+    public static void extractMoney()throws IOException {
+        System.out.println("Welcome to admin mode!");
+        System.out.println("Now Coffee Automat has " + bankOfMoney + " Hrn, how much money would you want to extract?");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        Integer moneyQuantity;
+        moneyQuantity = Integer.parseInt(reader.readLine());
+        if (moneyQuantity >= 0 & moneyQuantity <= bankOfMoney) {
+            bankOfMoney-=moneyQuantity;
+            System.out.println("Take you money " + moneyQuantity + " Hrn");
+            System.out.println("Now Coffee Automat has " + bankOfMoney + " Hrn.");
+        }
+        else {
+            System.out.println("Sorry, you want too much");
+        }
+    }
+    // метод добавляет ингридиенты (режим админа)
+    public static void addIngridients () throws IOException{
+        Integer sugarQuantityInGr, coffeeBeansQuantityInGr,  milkQuantityInMl, waterQuantityInMl;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String s;
+        System.out.println("Welcome to admin mode!");
+        s = "Now Coffee Automat has\n" + ingridientsQuantity.get("Sugar") + " Gramms of shugar \n" + ingridientsQuantity.get("CoffeeBeans") + " Gramms of coffee beans \n" + ingridientsQuantity.get("Milk") + " Ml of milk \n" +  ingridientsQuantity.get("Water") + " Ml of water \n";
+        System.out.println(s);
+        System.out.println("How much Sugar do you want to add? (Gramms, min 0 max 1000)");
+        while (true) {
+            sugarQuantityInGr = Integer.parseInt(reader.readLine());
+            if (sugarQuantityInGr >= 0 & sugarQuantityInGr < 1000) {
+                sugarQuantityInGr += CoffeeAutomat.ingridientsQuantity.get("Sugar");
+                ingridientsQuantity.put("Sugar", sugarQuantityInGr);
+                break;
+            } else System.out.println("Enter right quantity");
+        }
+        System.out.println("How much Coffee Beans do you want to add? (Gramms, min 0 max 1000)");
+        while (true) {
+            coffeeBeansQuantityInGr = Integer.parseInt(reader.readLine());
+            if (coffeeBeansQuantityInGr >= 0 & coffeeBeansQuantityInGr< 1000) {
+                coffeeBeansQuantityInGr += CoffeeAutomat.ingridientsQuantity.get("CoffeeBeans");
+                ingridientsQuantity.put("CoffeeBeans", coffeeBeansQuantityInGr);
+                break;
+            } else System.out.println("Enter right quantity");
+        }
+        System.out.println("How much Milk do you want to add? (Ml, min 0 max 1000)");
+        while (true) {
+            milkQuantityInMl= Integer.parseInt(reader.readLine());
+            if (milkQuantityInMl >= 0 & milkQuantityInMl < 1000) {
+                milkQuantityInMl += CoffeeAutomat.ingridientsQuantity.get("Milk");
+                ingridientsQuantity.put("Milk", milkQuantityInMl);
+                break;
+            } else System.out.println("Enter right quantity");
+        }
+        System.out.println("How much Water do you want to add? (Ml, min 0 max 1000)");
+        while (true) {
+            waterQuantityInMl = Integer.parseInt(reader.readLine());
+            if (waterQuantityInMl >= 0 & waterQuantityInMl < 1000) {
+                waterQuantityInMl += CoffeeAutomat.ingridientsQuantity.get("Water");
+                ingridientsQuantity.put("Water", waterQuantityInMl);
+                break;
+            } else System.out.println("Enter right quantity");
+        }
+        s = "Now Coffee Automat has\n" + ingridientsQuantity.get("Sugar") + " Gramms of shugar \n" + ingridientsQuantity.get("CoffeeBeans") + " Gramms of coffee beans \n" + ingridientsQuantity.get("Milk") + " Ml of milk \n" +  ingridientsQuantity.get("Water") + " Ml of water \n";
+        System.out.println(s);
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        //устанавливаем первоначальное количество ингридиентов и денег в автомате
+        ingridientsQuantity.put("Sugar", 20);
+        ingridientsQuantity.put("CoffeeBeans", 40);
+        ingridientsQuantity.put("Milk", 100);
+        ingridientsQuantity.put("Water", 200);
+        bankOfMoney = 50;
+
+        //описываем рецепты кофе и стоимость, используется конструктор в классе Recipe
+        Recipe espresso = new Recipe("Espresso", 5, 5, 20, 0, 30);
+        Recipe americano = new Recipe("Americano", 6, 10, 20, 0, 130);
+        Recipe americanoMilk = new Recipe("Americano with Milk", 10, 10, 20, 100, 30);
+        Recipe doppio = new Recipe("Doppio", 8, 10, 40, 0, 60);
+
+        //здесь реализован выбор кофе, предположим, что на автомате есть 5 кнопок
+        // 1 - эспрессо, 2 - американо, 3 - американо с молоком, 4 - двойной эспрессо и кнопка отмена (0)
+        //предположим, что режим админа запускается, если открыть спецальную крышку, за которой будет цифровая клавиатура
+        //режим админа забрать деньги - набрать на клавиатуре 1234567890.
+        //режим админа добавить ингридиенты - набрать на клавиатуре 987654321.
+        while (true){
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            Integer buttonNumber;
+            System.out.println();
+            System.out.println("Hello! Press the button with coffee that you want or 0 to cancel!");
+            System.out.println("1 - espresso, 2 - americano, 3 - americano with milk, 4 - doppio (double espresso)");
+            buttonNumber = Integer.parseInt(reader.readLine());
+            if (buttonNumber==1) CoffeeAutomat.makeCoffee(espresso);
+            if (buttonNumber==2) CoffeeAutomat.makeCoffee(americano);
+            if (buttonNumber==3) CoffeeAutomat.makeCoffee(americanoMilk);
+            if (buttonNumber==4) CoffeeAutomat.makeCoffee(doppio);
+            if (buttonNumber==1234567890) CoffeeAutomat.extractMoney();
+            if (buttonNumber==987654321) CoffeeAutomat.addIngridients();
+            if (buttonNumber==0) break;
+        }
+    }
+}
