@@ -1,0 +1,41 @@
+package com.crimeasos.java.course.Automat;
+
+import java.util.HashMap;
+
+// Created by Dima on 06.02.2016.
+// класс, экземпляры которого содеражат рецепты различных фидов кофе и их стоимость
+public class Recipe {
+    private HashMap<String, Integer> ingridients = new HashMap<String, Integer>();
+    private String coffeeName;
+    private int coffeeCost;
+
+    //конструктор
+
+    public Recipe(String coffeeName, int coffeeCostInGrn, int sugarWaightInGr, int coffeeBeansWaightInGr, int milkQuantityInMl, int waterQuantityInMl) {
+        this.coffeeName = coffeeName;
+        this.coffeeCost = coffeeCostInGrn;
+        this.ingridients.put("Sugar", sugarWaightInGr);
+        this.ingridients.put("CoffeeBeans", coffeeBeansWaightInGr);
+        this.ingridients.put("Milk", milkQuantityInMl);
+        this.ingridients.put("Water", waterQuantityInMl);
+    }
+
+    //геттеры
+
+    public HashMap<String, Integer> getIngridients() {
+        return this.ingridients;
+    }
+
+    public String getCoffeeName() {
+        return this.coffeeName;
+    }
+
+    public int getCoffeeCost() {
+        return this.coffeeCost;
+    }
+
+    @Override
+    public String toString() {
+        return coffeeName;
+    }
+}
